@@ -12,6 +12,7 @@ import { color, Icon } from "@rneui/base";
 import theme from "./app/theme/theme";
 import Icons from "./app/components/Icons";
 import AwesomeIcon from "react-native-vector-icons/FontAwesome";
+import { imprimir } from "./app/screens/landing/Impresora"
 
 import {
   MD3Colors as DefaultTheme,
@@ -80,6 +81,22 @@ const AppTabNavigation = () => {
         tabBarStyle: { backgroundColor: theme.colors.modernaRed },
       }}
     >
+
+      <TabsApp.Screen
+        name="Impresora"
+        component={imprimir}
+        options={{
+          tabBarIcon: () => (
+            <Icon
+              name="users"
+              type="font-awesome"
+              edit
+              color={theme.colors.white}
+            />
+          ),
+        }}
+      />
+
       <TabsApp.Screen
         name="ClientesStack"
         component={ClientesStackNavigation}
