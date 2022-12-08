@@ -1,188 +1,158 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { StatusBar } from "expo-status-bar";
+import Header from "./app/components/Header";
+import ClientesList from "./app/screens/clients/ClientesList";
+import RegistroCliente from "./app/screens/clients/RegistroCliente";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { NavigationContainer } from "@react-navigation/native";
+import ResumenPedidos from "./app/screens/clients/ResumenPedidos";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import * as React from 'react';
+import { useEffect, useState } from "react";
+import { color, Icon } from "@rneui/base";
+import theme from "./app/theme/theme";
+import Icons from "./app/components/Icons";
+import AwesomeIcon from "react-native-vector-icons/FontAwesome";
+
 import {
-  ActivityIndicator,
-  Button,
-  DeviceEventEmitter,
-  NativeEventEmitter,
-  PermissionsAndroid,
-  Platform,
-  ScrollView,
-  Text,
-  ToastAndroid,
-  View
-} from 'react-native';
-import { Input } from '@rneui/base';
-import { BluetoothManager, BluetoothTscPrinter, BluetoothEscposPrinter } from 'react-native-bluetooth-escpos-printer';
-import { TextInput } from 'react-native-paper';
-// import ItemList from './ItemList';
-// import SamplePrint from './SamplePrint';
-// import { styles } from './styles';
+  MD3Colors as DefaultTheme,
+  Provider as PaperProvider,
+} from "react-native-paper";
+import Splash from "./app/screens/landing/Splash";
+import Login from "./app/screens/auth/Login";
+import Auth from "./app/screens/auth/Auth";
+import PedidosList from "./app/screens/orders/PedidosList";
+import PedidoCliente from "./app/screens/orders/PedidoCliente";
+import PedidoResumen from "./app/screens/orders/PedidoResumen";
 
-const App = () => {
-  const [pairedDevices, setPairedDevices] = useState([]);
-  const [bleOpend, setBleOpend] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [name, setName] = useState('');
-  const [pairedDs, setPairedDs] = useState([]);
-  const [foundDs, setFoundDs] = useState([]);
-  const [paired, setPaired] = useState([]);
-  const [found, setFound] = useState([]);
-  const [texto, setText] = useState("");
-  const [fecha, setFecha] = useState("");
+const StackClientes = createNativeStackNavigator();
+const TabsApp = createBottomTabNavigator();
+const paperTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    text: "orange",
+  },
+};
 
-  const [boundAddress, setBoundAddress] = useState('');
-  const verBluttoth = () => {
+export default function App() {
+  const [sessionUser, setSessionUser] = useState(false);
+  const [appIsReady, setAppIsready] = useState(false);
 
-    BluetoothManager.isBluetoothEnabled().then((enabled) => {
-      alert(enabled) // enabled ==> true /false
-    }, (err) => {
-      alert(err)
-    });
-  }
-
-  const ScaneoDisp = () => {
-    BluetoothManager.enableBluetooth().then((r) => {
-      var paired = [];
-      if (r && r.length > 0) {
-        for (var i = 0; i < r.length; i++) {
-          try {
-            paired.push(JSON.parse(r[i])); // NEED TO PARSE THE DEVICE INFORMATION
-          } catch (e) {
-            //ignore
-          }
-        }
+  useEffect(() => {
+    const inicia = async () => {
+      try {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 2000);
+        });
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setAppIsready(true);
       }
-      console.log(JSON.stringify(paired))
-    }, (err) => {
-      alert(err)
-    });
-
-
-    BluetoothManager.scanDevices()
-      .then((s) => {
-        var ss = JSON.parse(s);//JSON string
-        setPairedDs(pairedDs.cloneWithRows(ss.paired || []));
-        setFoundDs(foundDs.cloneWithRows(ss.paired || []))
-        setLoading(false)
-        {
-          () => {
-            setPaired(ss.paired || []);
-            setFound(ss.found || []);
-          }
-        }
-      }, (er) => {
-        setLoading(false)
-
-        alert('error' + JSON.stringify(er));
-      });
-
-  }
-  let options = {
-    width: 40,
-    height: 30,
-    gap: 20,
-    direction: BluetoothTscPrinter.DIRECTION.FORWARD,
-    reference: [0, 0],
-    tear: BluetoothTscPrinter.TEAR.ON,
-    sound: 0,
-    text: [{
-      text: 'Buenas Tardes, buen provecho :D ',
-      x: 20,
-      y: 0,
-      fonttype: BluetoothTscPrinter.FONTTYPE.SIMPLIFIED_CHINESE,
-      rotation: BluetoothTscPrinter.ROTATION.ROTATION_0,
-      xscal: BluetoothTscPrinter.FONTMUL.MUL_1,
-      yscal: BluetoothTscPrinter.FONTMUL.MUL_1
-    }],
-
-
+    };
+    inicia();
+  });
+  if (!appIsReady) {
+    return <Splash />;
   }
 
-  const Conexion = () => {
-    BluetoothManager.connect("AC:3F:A4:A1:E9:4B") // the device address scanned.
-      .then((s) => {
-        setBoundAddress("AC:3F:A4:A1:E9:4B");
-        setLoading(false)
-        alert(s)
-      }, (e) => {
-        setLoading(false)
-        alert(e);
-      })
-  }
-let txt= String(texto);
-console.log(txt)
-let fec= String(fecha);
-console.log(fec)
-
-
-  const Impresion = async () => {
-
-    await  BluetoothEscposPrinter.printText("Factura #"+(fecha)+"\n\r",{
-      encoding:'UTF-8',
-      codepage:0,
-      widthtimes:0,
-      heigthtimes:0,
-      fonttype:5});
-
-      await  BluetoothEscposPrinter.printText("Nombre:"+(txt)+"\n\r",{
-        encoding:'UTF-8',
-        codepage:0,
-        widthtimes:0,
-        heigthtimes:0,
-        fonttype:1});
-
-
-
-  }
-
-  return <View>
-
-    <Text> hOLA</Text>
-
-    
-    <TextInput
-        // style={styles.input}
-        onChangeText={setFecha}
-        value={fecha}
-        placeholder="FECHA"
-       
-      />
-    <TextInput
-        // style={styles.input}
-        onChangeText={setText}
-        value={texto}
-        placeholder="Nombre"
-       
-      />
-    <Button
-      title='presiona'
-      onPress={verBluttoth}
-
-    />
-    <Button
-      title='presiona ver Dispo'
-      onPress={Conexion}
-
-    />
-    <Button
-      title='presiona ver Dispo'
-      onPress={Impresion}
-
-    />
-
-
-
-
-
-
-
-
-
-
-
-
-
-  </View>
+  return (
+    <PaperProvider
+      settings={{
+        icon: (props) => <AwesomeIcon {...props} />,
+      }}
+    >
+      <NavigationContainer>
+        {/* AppTabNavigation */}
+        {true ? <AppTabNavigation /> : <Login />}
+        <StatusBar />
+      </NavigationContainer>
+    </PaperProvider>
+  );
 }
 
-export default App;
+const AppTabNavigation = () => {
+  return (
+    <TabsApp.Navigator
+      screenOptions={{
+        header: () => <Header />,
+        tabBarShowLabel: false,
+        tabBarStyle: { backgroundColor: theme.colors.modernaRed },
+      }}
+    >
+      <TabsApp.Screen
+        name="ClientesStack"
+        component={ClientesStackNavigation}
+        options={{
+          tabBarIcon: () => (
+            <Icon
+              name="users"
+              type="font-awesome"
+              edit
+              color={theme.colors.white}
+            />
+          ),
+        }}
+      />
+      <TabsApp.Screen
+        name="ClientesStack2"
+        component={ClientesStackNavigation}
+        options={{
+          tabBarIcon: () => (
+            <Icon
+              name="cloud-offline"
+              type="ionicon"
+              edit
+              color={theme.colors.white}
+            />
+          ),
+        }}
+      />
+      <TabsApp.Screen
+        name="ClientesStack3"
+        component={ClientesStackNavigation}
+        options={{
+          tabBarIcon: () => (
+            <Icon
+              name="users"
+              type="font-awesome"
+              edit
+              color={theme.colors.white}
+            />
+          ),
+        }}
+      />
+      <TabsApp.Screen
+        name="ClientesStack4"
+        component={ClientesStackNavigation}
+        options={{
+          tabBarIcon: () => (
+            <Icon
+              name="users"
+              type="font-awesome"
+              edit
+              color={theme.colors.white}
+            />
+          ),
+        }}
+      />
+    </TabsApp.Navigator>
+  );
+};
+
+const ClientesStackNavigation = () => {
+  return (
+    <StackClientes.Navigator
+      initialRouteName="ClientesList"
+      screenOptions={{ headerShown: false }}
+    >
+      <StackClientes.Screen name="ClientesList" component={ClientesList} />
+      <StackClientes.Screen
+        name="RegistroCliente"
+        component={RegistroCliente}
+      />
+      <StackClientes.Screen name="AgregarPedido" component={PedidoCliente} />
+      <StackClientes.Screen name="PedidoResumen" component={PedidoResumen} />
+    </StackClientes.Navigator>
+  );
+};

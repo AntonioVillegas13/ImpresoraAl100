@@ -19,7 +19,7 @@
     "expo-modules-core": "^1.0.3",
     "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",
-    "react": "17.0.2",
+    "react": "18.1.0",
     "react-native": "0.68.2",
     "react-native-app-auth": "^6.4.3",
     "react-native-bluetooth-escpos-printer": "^0.0.5",
